@@ -1,0 +1,33 @@
+table_name: orders
+
+target_dataset: ds_raw
+target_table: orders_raw
+
+file_config:
+
+file_pattern: orders_YYYYMMDD.parquet
+
+file_format: PARQUET
+
+allowed_extensions:
+- .parquet
+
+reject_empty_file: true
+
+multiple_files_allowed: false
+
+load_config:
+
+load_type: WRITE_APPEND
+
+validations:
+
+mandatory_columns:
+- order_id
+
+mandatory_non_null_columns:
+- order_id
+
+row_count_validation: true
+
+row_count_threshold: 0
