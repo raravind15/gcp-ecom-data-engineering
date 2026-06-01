@@ -89,6 +89,60 @@ def validate_mandatory_columns(df, config):
     logging.info(
         "Mandatory column validation passed"
     )
+
+def validate_mandatory_non_null_columns(df, config):
+
+    mandatory_non_null_columns = config[
+        "mandatory_non_null_columns"
+    ]
+
+    for column in mandatory_non_null_columns:
+
+        null_count = df[column].isnull().sum()
+
+        if null_count > 0:
+
+            raise Exception(
+                f"Column {column} contains "
+                f"{null_count} null values"
+            )
+
+    logging.info(
+        "Mandatory non-null validation passed"
+    )
+
+def add_audit_columns(df, file_name):
+
+    df["source_file_name"] = file_name
+
+    df["load_timestamp"] = pd.Timestamp.utcnow()
+
+    return df
+
+def load_to_bigquery(df, config):
+
+    table_id = (
+        f"{bq_client.project}."
+        f"{config['target_dataset']}."
+        f"{config['target_table']}"
+    )
+
+    job_config = bigquery.LoadJobConfig(
+        write_disposition=bigquery.WriteDisposition.WRITE_APPEND
+    )
+
+    job = bq_client.load_table_from_dataframe(
+        df,
+        table_id,
+        job_config=job_config
+    )
+
+    job.result()
+
+    logging.info(
+        f"Loaded {len(df)} rows into {table_id}"
+    )
+
 @functions_framework.cloud_event
 def landing_trigger(cloud_event: CloudEvent):
 
@@ -130,4 +184,19 @@ def landing_trigger(cloud_event: CloudEvent):
     validate_mandatory_columns(
         df,
         config
+    )
+
+    validate_mandatory_non_null_columns(
+    df,
+    config
+    )
+
+    df = add_audit_columns(
+    df,
+    file_name
+    )
+
+    load_to_bigquery(
+    df,
+    config
     )
