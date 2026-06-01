@@ -3,8 +3,6 @@ table_name: customers
 target_dataset: ds_raw
 target_table: customers_raw
 
-file_config:
-
 file_pattern: customers_YYYYMMDD.parquet
 
 file_format: PARQUET
