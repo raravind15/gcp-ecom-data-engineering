@@ -72,6 +72,22 @@ def read_parquet_file(file_name):
     )
 
     return df
+
+def validate_mandatory_columns(df, config):
+
+    mandatory_columns = config["mandatory_columns"]
+
+    for column in mandatory_columns:
+
+        if column not in df.columns:
+
+            raise Exception(
+                f"Mandatory column missing: {column}"
+            )
+
+    logging.info(
+        "Mandatory column validation passed"
+    )
 @functions_framework.cloud_event
 def landing_trigger(cloud_event: CloudEvent):
 
@@ -108,4 +124,9 @@ def landing_trigger(cloud_event: CloudEvent):
 
     logging.info(
         f"Total rows in file: {len(df)}"
+    )
+
+    validate_mandatory_columns(
+        df,
+        config
     )
