@@ -70,6 +70,7 @@ def read_parquet_file(file_name):
     df = pd.read_parquet(
         BytesIO(parquet_bytes)
     )
+    df.columns = [col.lower() for col in df.columns]
 
     return df
 
