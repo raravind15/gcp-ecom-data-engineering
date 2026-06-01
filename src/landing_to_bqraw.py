@@ -30,7 +30,15 @@ def get_entity_name(file_name):
 
 def load_yaml_config(entity_name):
 
-    config_file_path = f"configs/{entity_name}.yaml"
+    current_dir = os.path.dirname(__file__)
+
+    project_root = os.path.dirname(current_dir)
+
+    config_file_path = os.path.join(
+        project_root,
+        "configs",
+        f"{entity_name}.yaml"
+    )
 
     with open(config_file_path, "r") as yaml_file:
 
@@ -40,7 +48,7 @@ def load_yaml_config(entity_name):
 
 def validate_file_extension(file_name, config):
 
-    allowed_extensions = config["file_config"]["allowed_extensions"]
+    allowed_extensions = config["allowed_extensions"]
 
     for extension in allowed_extensions:
 
@@ -79,6 +87,7 @@ def landing_trigger(cloud_event: CloudEvent):
     logging.info(f"Entity identified: {entity_name}")
 
     config = load_yaml_config(entity_name)
+    logging.info(f"Config Loaded: {config}")
 
     logging.info(
         f"Target Table: "
