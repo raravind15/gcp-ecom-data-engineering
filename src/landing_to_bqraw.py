@@ -176,6 +176,94 @@ def insert_audit_record(
         "Audit record inserted successfully"
     )
 
+def move_to_archive(file_name):
+
+    landing_bucket = storage_client.bucket(
+        LANDING_BUCKET
+    )
+
+    archive_bucket = storage_client.bucket(
+        ARCHIVE_BUCKET
+    )
+
+    source_blob = landing_bucket.blob(
+        file_name
+    )
+
+    landing_bucket.copy_blob(
+        source_blob,
+        archive_bucket,
+        file_name
+    )
+
+    source_blob.delete()
+
+    logging.info(
+        f"File archived successfully: {file_name}"
+    )
+
+def move_to_error(file_name):
+
+    landing_bucket = storage_client.bucket(
+        LANDING_BUCKET
+    )
+
+    error_bucket = storage_client.bucket(
+        ERROR_BUCKET
+    )
+
+    source_blob = landing_bucket.blob(
+        file_name
+    )
+
+    landing_bucket.copy_blob(
+        source_blob,
+        error_bucket,
+        file_name
+    )
+
+    source_blob.delete()
+
+    logging.info(
+        f"File moved to error bucket: {file_name}"
+    )
+
+def is_file_already_processed(file_name):
+
+    query = f"""
+    SELECT COUNT(*) AS cnt
+    FROM `{bq_client.project}.{AUDIT_DATASET}.load_audit`
+    WHERE source_file_name = @file_name
+      AND status = 'SUCCESS'
+    """
+
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter(
+                "file_name",
+                "STRING",
+                file_name
+            )
+        ]
+    )
+
+    result = bq_client.query(
+        query,
+        job_config=job_config
+    ).result()
+
+    for row in result:
+
+        if row.cnt > 0:
+
+            logging.info(
+                f"File already processed: {file_name}"
+            )
+
+            return True
+
+    return False
+
 @functions_framework.cloud_event
 def landing_trigger(cloud_event: CloudEvent):
 
@@ -187,56 +275,89 @@ def landing_trigger(cloud_event: CloudEvent):
     logging.info(f"Landing file received: {file_name}")
 
     entity_name = get_entity_name(file_name)
+    
+    if is_file_already_processed(file_name):
 
-    logging.info(f"Entity identified: {entity_name}")
+        logging.info(
+            f"Skipping duplicate file: {file_name}"
+        )
 
-    config = load_yaml_config(entity_name)
-    logging.info(f"Config Loaded: {config}")
+        return
 
-    logging.info(
-        f"Target Table: "
-        f"{config['target_dataset']}."
-        f"{config['target_table']}"
-    )
+    try:
 
-    validate_file_extension(
-        file_name,
-        config
-    )
+        logging.info(f"Entity identified: {entity_name}")
 
-    logging.info(
-        "File extension validation passed"
-    )
+        config = load_yaml_config(entity_name)
+        logging.info(f"Config Loaded: {config}")
 
-    df = read_parquet_file(file_name)
+        logging.info(
+            f"Target Table: "
+            f"{config['target_dataset']}."
+            f"{config['target_table']}"
+        )
 
-    logging.info(
-        f"Total rows in file: {len(df)}"
-    )
+        validate_file_extension(
+            file_name,
+            config
+        )
 
-    validate_mandatory_columns(
+        logging.info(
+            "File extension validation passed"
+        )
+
+        df = read_parquet_file(file_name)
+
+        logging.info(
+            f"Total rows in file: {len(df)}"
+        )
+
+        validate_mandatory_columns(
+            df,
+            config
+        )
+
+        validate_mandatory_non_null_columns(
         df,
         config
-    )
+        )
 
-    validate_mandatory_non_null_columns(
-    df,
-    config
-    )
+        df = add_audit_columns(
+        df,
+        file_name
+        )
 
-    df = add_audit_columns(
-    df,
-    file_name
-    )
+        load_to_bigquery(
+        df,
+        config
+        )
 
-    load_to_bigquery(
-    df,
-    config
-    )
+        insert_audit_record(
+        entity_name=entity_name,
+        file_name=file_name,
+        records_loaded=len(df),
+        status="SUCCESS"
+        )
 
-    insert_audit_record(
-    entity_name=entity_name,
-    file_name=file_name,
-    records_loaded=len(df),
-    status="SUCCESS"
-    )
+        move_to_archive(
+        file_name
+        )
+    
+    except Exception as e:
+        logging.error(
+        f"Pipeline failed: {str(e)}"
+        )
+
+        insert_audit_record(
+            entity_name=entity_name,
+            file_name=file_name,
+            records_loaded=0,
+            status="FAILED",
+            error_message=str(e)
+        )
+
+        move_to_error(
+            file_name
+        )
+
+        return
