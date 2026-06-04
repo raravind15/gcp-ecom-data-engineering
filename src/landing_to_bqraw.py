@@ -7,6 +7,7 @@ import os
 import yaml
 import pandas as pd
 from io import BytesIO
+from datetime import datetime,timezone
 
 logging.basicConfig(level=logging.INFO)
 
@@ -30,18 +31,9 @@ def get_entity_name(file_name):
 
 def load_yaml_config(entity_name):
 
-    current_dir = os.path.dirname(__file__)
-
-    project_root = os.path.dirname(current_dir)
-
-    config_file_path = os.path.join(
-        project_root,
-        "configs",
-        f"{entity_name}.yaml"
-    )
+    config_file_path = f"{entity_name}.yaml"
 
     with open(config_file_path, "r") as yaml_file:
-
         config = yaml.safe_load(yaml_file)
 
     return config
@@ -143,6 +135,47 @@ def load_to_bigquery(df, config):
         f"Loaded {len(df)} rows into {table_id}"
     )
 
+def insert_audit_record(
+    entity_name,
+    file_name,
+    records_loaded,
+    status,
+    error_message=None
+):
+
+    table_id = (
+        f"{bq_client.project}."
+        f"{AUDIT_DATASET}."
+        f"load_audit"
+    )
+
+    rows_to_insert = [
+        {
+            "table_name": entity_name,
+            "source_file_name": file_name,
+            "file_received_timestamp": datetime.now(timezone.utc).isoformat(),
+            "load_timestamp": datetime.now(timezone.utc).isoformat(),
+            "records_loaded": records_loaded,
+            "records_rejected": 0,
+            "status": status,
+            "error_message": error_message
+        }
+    ]
+
+    errors = bq_client.insert_rows_json(
+        table_id,
+        rows_to_insert
+    )
+
+    if errors:
+        raise Exception(
+            f"Audit insert failed: {errors}"
+        )
+
+    logging.info(
+        "Audit record inserted successfully"
+    )
+
 @functions_framework.cloud_event
 def landing_trigger(cloud_event: CloudEvent):
 
@@ -199,4 +232,11 @@ def landing_trigger(cloud_event: CloudEvent):
     load_to_bigquery(
     df,
     config
+    )
+
+    insert_audit_record(
+    entity_name=entity_name,
+    file_name=file_name,
+    records_loaded=len(df),
+    status="SUCCESS"
     )
