@@ -8,6 +8,7 @@ import yaml
 import pandas as pd
 from io import BytesIO
 from datetime import datetime,timezone
+from decimal import Decimal
 
 logging.basicConfig(level=logging.INFO)
 
@@ -57,11 +58,20 @@ def read_parquet_file(file_name):
 
     blob = bucket.blob(file_name)
 
+    if not blob.exists():
+
+        logging.info(
+            f"File not found, skipping: {file_name}"
+        )
+
+        return
+
     parquet_bytes = blob.download_as_bytes()
 
     df = pd.read_parquet(
         BytesIO(parquet_bytes)
     )
+
     df.columns = [col.lower() for col in df.columns]
 
     return df
@@ -107,7 +117,7 @@ def add_audit_columns(df, file_name):
 
     df["source_file_name"] = file_name
 
-    df["load_timestamp"] = pd.Timestamp.utcnow()
+    df["load_timestamp"] = datetime.now()
 
     return df
 
@@ -133,6 +143,57 @@ def load_to_bigquery(df, config):
 
     logging.info(
         f"Loaded {len(df)} rows into {table_id}"
+    )
+
+def validate_row_count_reconciliation(
+    file_name,
+    source_row_count,
+    config
+):
+
+    table_id = (
+        f"{bq_client.project}."
+        f"{config['target_dataset']}."
+        f"{config['target_table']}"
+    )
+
+    query = f"""
+    SELECT COUNT(*) AS loaded_rows
+    FROM `{table_id}`
+    WHERE source_file_name = @file_name
+    """
+
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter(
+                "file_name",
+                "STRING",
+                file_name
+            )
+        ]
+    )
+
+    result = bq_client.query(
+        query,
+        job_config=job_config
+    ).result()
+
+    for row in result:
+
+        loaded_rows = row.loaded_rows
+
+        if loaded_rows != source_row_count:
+
+            raise Exception(
+                f"Row count mismatch. "
+                f"Source={source_row_count}, "
+                f"BigQuery={loaded_rows}"
+            )
+
+    logging.info(
+        f"Row count reconciliation passed. "
+        f"Source={source_row_count}, "
+        f"BigQuery={loaded_rows}"
     )
 
 def insert_audit_record(
@@ -190,6 +251,13 @@ def move_to_archive(file_name):
         file_name
     )
 
+    if not source_blob.exists():
+
+        logging.info(
+            f"File already moved: {file_name}"
+        )
+
+
     landing_bucket.copy_blob(
         source_blob,
         archive_bucket,
@@ -215,6 +283,14 @@ def move_to_error(file_name):
     source_blob = landing_bucket.blob(
         file_name
     )
+    
+    if not source_blob.exists():
+
+        logging.info(
+            f"File already moved: {file_name}"
+        )
+        return
+
 
     landing_bucket.copy_blob(
         source_blob,
@@ -308,6 +384,14 @@ def landing_trigger(cloud_event: CloudEvent):
 
         df = read_parquet_file(file_name)
 
+        if df is None:
+
+            logging.info(
+                f"No file available for processing: {file_name}"
+            )
+
+            return
+
         logging.info(
             f"Total rows in file: {len(df)}"
         )
@@ -327,9 +411,43 @@ def landing_trigger(cloud_event: CloudEvent):
         file_name
         )
 
+        if "order_date" in df.columns:
+
+            df["order_date"] = pd.to_datetime(
+                df["order_date"],
+                format="%d-%m-%y"
+            ).dt.date
+
+        if "last_updated_date" in df.columns:
+
+            df["last_updated_date"] = pd.to_datetime(
+                df["last_updated_date"],
+                format="%d-%m-%y"
+            ).dt.date
+
+
+        numeric_columns = [
+            "unit_price",
+            "order_amount"
+        ]
+
+        for col in numeric_columns:
+
+            if col in df.columns:
+
+                df[col] = df[col].apply(
+                    lambda x: Decimal(str(x))
+                )
+
         load_to_bigquery(
         df,
         config
+        )
+
+        validate_row_count_reconciliation(
+            file_name=file_name,
+            source_row_count=len(df),
+            config=config
         )
 
         insert_audit_record(
