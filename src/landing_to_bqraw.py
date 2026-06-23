@@ -256,6 +256,7 @@ def move_to_archive(file_name):
         logging.info(
             f"File already moved: {file_name}"
         )
+        return
 
 
     landing_bucket.copy_blob(
@@ -307,10 +308,9 @@ def move_to_error(file_name):
 def is_file_already_processed(file_name):
 
     query = f"""
-    SELECT COUNT(*) AS cnt
-    FROM `{bq_client.project}.{AUDIT_DATASET}.load_audit`
-    WHERE source_file_name = @file_name
-      AND status = 'SUCCESS'
+    SELECT COUNT(*) cnt
+    FROM `{bq_client.project}.{AUDIT_DATASET}.processed_files`
+    WHERE file_name = @file_name
     """
 
     job_config = bigquery.QueryJobConfig(
@@ -340,8 +340,89 @@ def is_file_already_processed(file_name):
 
     return False
 
+def call_transform_procedure(entity):
+
+    procedure_name = (
+        f"ds_trans.sp_transform_{entity}"
+    )
+
+    bq_client.query(
+        f"CALL {procedure_name}();"
+    ).result()
+
+    logging.info(
+        f"Transformation completed: {procedure_name}"
+    )
+
+def call_curated_procedure(entity):
+
+    procedure_map = {
+        "customers": "ds_curated.sp_load_dim_customer",
+        "products": "ds_curated.sp_load_dim_product",
+        "orders": "ds_curated.sp_load_fact_sales"
+    }
+
+    procedure_name = procedure_map.get(entity)
+
+    if procedure_name:
+
+        bq_client.query(
+            f"CALL {procedure_name}();"
+        ).result()
+
+        logging.info(
+            f"Curated load completed: {procedure_name}"
+        )
+    
+def mark_file_processing(file_name):
+
+    table_id = (
+        f"{bq_client.project}."
+        f"{AUDIT_DATASET}."
+        f"processed_files"
+    )
+
+    rows = [
+        {
+            "file_name": file_name,
+            "status": "PROCESSING",
+            "created_timestamp":
+                datetime.now(timezone.utc).isoformat()
+        }
+    ]
+
+    bq_client.insert_rows_json(
+        table_id,
+        rows
+    )
+
+def mark_file_success(file_name):
+
+    query = f"""
+    UPDATE `{bq_client.project}.{AUDIT_DATASET}.processed_files`
+    SET status = 'SUCCESS'
+    WHERE file_name = @file_name
+    """
+
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter(
+                "file_name",
+                "STRING",
+                file_name
+            )
+        ]
+    )
+
+    bq_client.query(
+        query,
+        job_config=job_config
+    ).result()
+
 @functions_framework.cloud_event
+
 def landing_trigger(cloud_event: CloudEvent):
+    logging.info(f"Cloud Event ID: {cloud_event['id']}")
 
     data = cloud_event.data
 
@@ -359,6 +440,7 @@ def landing_trigger(cloud_event: CloudEvent):
         )
 
         return
+    mark_file_processing(file_name)
 
     try:
 
@@ -450,12 +532,18 @@ def landing_trigger(cloud_event: CloudEvent):
             config=config
         )
 
+        call_transform_procedure(entity_name)
+
+        call_curated_procedure(entity_name)
+
         insert_audit_record(
         entity_name=entity_name,
         file_name=file_name,
         records_loaded=len(df),
         status="SUCCESS"
         )
+
+        mark_file_success(file_name)
 
         move_to_archive(
         file_name
