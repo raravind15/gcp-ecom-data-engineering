@@ -6,4 +6,4 @@ COPY . .
 
 RUN pip install -r requirements.txt
 
-CMD ["python", "src/landing_to_bqraw.py"]
+CMD ["python", "src_to_land_gcs.py"]
