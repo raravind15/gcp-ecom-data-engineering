@@ -35,5 +35,5 @@ def gcs_trigger(cloud_event: CloudEvent):
         f"File copied successfully to landing bucket: {file_name}"
     )
     logging.info(
-        f"CI/CD Success"
+        f"CI/CD Success "
     )
