@@ -27,3 +27,12 @@ print(cust1.name,cust2.name)
                 file_name
             )
  job_config.query_parameters=[param1]
+
+docker run --rm -p 8080:8080 ^
+-v "%APPDATA%\gcloud:/root/.config/gcloud" ^
+-e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json ^
+-e GOOGLE_CLOUD_PROJECT=di-dev-aravind ^
+-e SOURCE_BUCKET=aravind-de-dev-aravind-source-asia-south1 ^
+-e LANDING_BUCKET=aravind-de-dev-landing-asia-south1 ^
+src_to_land_gcs:v3
+

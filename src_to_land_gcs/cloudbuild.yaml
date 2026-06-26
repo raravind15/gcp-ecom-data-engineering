@@ -1,0 +1,29 @@
+substitutions:
+  _REGION: asia-south1
+  _REPOSITORY: dataeng-images
+  _IMAGE_NAME: src-to-land-gcs
+  _SERVICE_NAME: src-to-landing-ingestion
+
+steps:
+
+- name: 'gcr.io/cloud-builders/docker'
+  dir: 'src_to_land_gcs'
+  args:
+    - build
+    - -t
+    - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
+    - .
+
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - push
+    - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
+
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+    - run
+    - deploy
+    - '${_SERVICE_NAME}'
+    - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
+    - '--region=${_REGION}'

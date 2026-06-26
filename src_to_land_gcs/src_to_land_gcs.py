@@ -8,9 +8,12 @@ logging.basicConfig(level=logging.INFO)
 
 SOURCE_BUCKET = os.environ.get("SOURCE_BUCKET")
 LANDING_BUCKET = os.environ.get("LANDING_BUCKET")
-
+print("Program started")
 storage_client=storage.Client()
+print("Storage client created")
 
+print("Source bucket:", SOURCE_BUCKET)
+print("Landing bucket:", LANDING_BUCKET)
 @functions_framework.cloud_event
 def gcs_trigger(cloud_event: CloudEvent):
     data = cloud_event.data
