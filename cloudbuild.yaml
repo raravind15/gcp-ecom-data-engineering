@@ -41,4 +41,4 @@ steps:
     - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
     - '--region=${_REGION}'
     - '--service-account=${_SERVICE_ACCOUNT}'
-    - '--set-env-vars=SOURCE_BUCKET=${_SOURCE_BUCKET},LANDING_BUCKET=${_LANDING_BUCKET}'
+    - '--env-vars-file=${_ENV_FILE}
