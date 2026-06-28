@@ -47,6 +47,7 @@ steps:
 
 # Deploy
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  dir: '${_SOURCE_DIR}'
   entrypoint: gcloud
   args:
     - run
@@ -55,4 +56,4 @@ steps:
     - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
     - '--region=${_REGION}'
     - '--service-account=${_SERVICE_ACCOUNT}'
-    - '--env-vars-file=${_SOURCE_DIR}/${_ENV_FILE}'
+    - '--env-vars-file=deploy.env'
