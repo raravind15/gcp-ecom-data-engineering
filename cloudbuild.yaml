@@ -32,8 +32,22 @@ steps:
     - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE_NAME}:latest'
 
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  dir: '${_SOURCE_DIR}'
-  entrypoint: 'gcloud'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      echo "PWD:"
+      pwd
+      echo ""
+      echo "Workspace:"
+      find /workspace -name deploy.env
+      echo ""
+      echo "Deploy command will use:"
+      echo "${_SOURCE_DIR}/${_ENV_FILE}"
+
+# Deploy
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
   args:
     - run
     - deploy
@@ -41,4 +55,4 @@ steps:
     - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
     - '--region=${_REGION}'
     - '--service-account=${_SERVICE_ACCOUNT}'
-    - '--env-vars-file=${_ENV_FILE}'
+    - '--env-vars-file=${_SOURCE_DIR}/${_ENV_FILE}'
