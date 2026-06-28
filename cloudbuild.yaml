@@ -31,6 +31,18 @@ steps:
     - push
     - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE_NAME}:latest'
 
+- name: 'ubuntu'
+  dir: '${_SOURCE_DIR}'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      echo "SOURCE_DIR=${_SOURCE_DIR}"
+      echo "ENV_FILE=${_ENV_FILE}"
+      pwd
+      ls -la
+      cat ${_ENV_FILE}
+
 # Deploy
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: gcloud
