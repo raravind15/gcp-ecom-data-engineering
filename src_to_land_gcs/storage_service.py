@@ -1,11 +1,12 @@
 import config   
 
 def copy_file(file_name):
-    source_bucket = config.storage_client.bucket(config.SOURCE_BUCKET)
+    storage_client=config.get_storage_client()
+    source_bucket =storage_client.bucket(config.SOURCE_BUCKET)
 
     source_blob = source_bucket.blob(file_name)
 
-    landing_bucket = config.storage_client.bucket(config.LANDING_BUCKET)
+    landing_bucket =storage_client.bucket(config.LANDING_BUCKET)
 
     source_bucket.copy_blob(
     source_blob,

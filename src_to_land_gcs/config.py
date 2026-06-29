@@ -5,4 +5,5 @@ SOURCE_BUCKET = os.getenv("SOURCE_BUCKET")
 
 LANDING_BUCKET = os.getenv("LANDING_BUCKET")
 
-storage_client = storage.Client()
+def get_storage_client():
+    return storage.Client()
