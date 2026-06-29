@@ -2,6 +2,16 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
+# Unit tests
+- name: 'python:3.12'
+  id: 'Run Unit Tests'
+  dir: 'src_to_land_gcs'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      pip install -r requirements.txt
+      pytest -v
 
 # Build SHA image
 - name: 'gcr.io/cloud-builders/docker'
@@ -30,20 +40,6 @@ steps:
   args:
     - push
     - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE_NAME}:latest'
-
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: 'bash'
-  args:
-    - '-c'
-    - |
-      echo "PWD:"
-      pwd
-      echo ""
-      echo "Workspace:"
-      find /workspace -name deploy.env
-      echo ""
-      echo "Deploy command will use:"
-      echo "${_SOURCE_DIR}/${_ENV_FILE}"
 
 # Deploy
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
