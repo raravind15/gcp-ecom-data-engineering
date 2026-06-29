@@ -3,9 +3,11 @@ from cloudevents.http import CloudEvent
 import logging
 import storage_service
 
+logging.basicConfig(level=logging.INFO)
 
 @functions_framework.cloud_event
 def gcs_trigger(cloud_event: CloudEvent):
+    print("******** FUNCTION STARTED ********")
     data = cloud_event.data
     
     file_name = data["name"]
