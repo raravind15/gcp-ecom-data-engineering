@@ -107,6 +107,7 @@ def landing_trigger(cloud_event: CloudEvent):
         )
 
         firestore_service.mark_success(file_name)
+        bq_service.mark_file_success(file_name)
 
         storage_service.move_to_archive(app_config.LANDING_BUCKET,app_config.ARCHIVE_BUCKET,
         file_name
@@ -126,6 +127,7 @@ def landing_trigger(cloud_event: CloudEvent):
         )
 
         firestore_service.mark_failed(file_name)
+        bq_service.mark_file_failed(file_name)
 
         storage_service.move_to_error(app_config.LANDING_BUCKET,app_config.ERROR_BUCKET,
             file_name
