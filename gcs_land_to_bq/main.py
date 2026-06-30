@@ -29,7 +29,7 @@ def landing_trigger(cloud_event: CloudEvent):
         )
 
         return
-    bq_service.mark_file_processing(file_name)
+    # bq_service.mark_file_processing(file_name)
 
     try:
 
