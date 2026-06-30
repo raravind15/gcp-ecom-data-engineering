@@ -117,28 +117,28 @@ def mark_file_success(file_name):
 
     def mark_file_failed(file_name):
 
-    query = f"""
-    UPDATE `{bq_client.project}.{config.AUDIT_DATASET}.processed_files`
-    SET
-        status = 'FAILED'
-    WHERE file_name = @file_name
-    """
+        query = f"""
+        UPDATE `{bq_client.project}.{config.AUDIT_DATASET}.processed_files`
+        SET
+            status = 'FAILED'
+        WHERE file_name = @file_name
+        """
 
-    job_config = bigquery.QueryJobConfig(
-        query_parameters=[
-            bigquery.ScalarQueryParameter(
-                "file_name",
-                "STRING",
-                file_name
-            )
-        ]
-    )
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[
+                bigquery.ScalarQueryParameter(
+                    "file_name",
+                    "STRING",
+                    file_name
+                )
+            ]
+        )
 
-    bq_client.query(
-        query,
-        job_config=job_config
-    ).result()
+        bq_client.query(
+            query,
+            job_config=job_config
+        ).result()
 
-    logging.info(
-        f"File marked as FAILED: {file_name}"
-    )
+        logging.info(
+            f"File marked as FAILED: {file_name}"
+        )
