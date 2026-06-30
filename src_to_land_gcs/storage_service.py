@@ -8,9 +8,9 @@ def copy_file(file_name):
 
     landing_bucket =storage_client.bucket(config.LANDING_BUCKET)
 
-    # source_bucket.copy_blob(
-    # source_blob,
-    # landing_bucket,
-    # file_name
-    # )
+    source_bucket.copy_blob(
+    source_blob,
+    landing_bucket,
+    file_name
+    )
     print("Bug introduced")
