@@ -29,7 +29,7 @@ def landing_trigger(cloud_event: CloudEvent):
         )
 
         return
-    # bq_service.mark_file_processing(file_name)
+    bq_service.mark_file_processing(file_name)
 
     try:
 
@@ -122,6 +122,8 @@ def landing_trigger(cloud_event: CloudEvent):
             status="FAILED",
             error_message=str(e)
         )
+        
+        bq_service.mark_file_failed(file_name)
 
         storage_service.move_to_error(app_config.LANDING_BUCKET,app_config.ERROR_BUCKET,
             file_name
