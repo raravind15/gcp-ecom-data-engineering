@@ -2,7 +2,7 @@ import logging
 from google.cloud import bigquery
 import config
 
-bq_client=config.get_bq_client
+bq_client=config.get_bq_client()
 
 def validate_file_extension(file_name, config):
 

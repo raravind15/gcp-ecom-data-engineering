@@ -1,7 +1,7 @@
 import logging
 import config
 
-bq_client=config.get_bq_client
+bq_client=config.get_bq_client()
 
 def call_transform_procedure(entity):
 

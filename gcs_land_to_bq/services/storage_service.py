@@ -3,8 +3,8 @@ import config
 import pandas as pd
 from io import BytesIO
 
-storage_client=config.get_storage_client
-bq_client=config.get_bq_client
+storage_client=config.get_storage_client()
+bq_client=config.get_bq_client()
 
 def read_parquet_file(bucket_name,file_name):
 
