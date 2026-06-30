@@ -3,7 +3,7 @@ from cloudevents.http import CloudEvent
 import logging
 import yaml
 import config as app_config
-from services import storage_service,validation_service,bq_service,audit_service,procedure_service,processing_service
+from services import storage_service,validation_service,bq_service,audit_service,procedure_service,processing_service,firestore_service
 from utils import helper,config_loader
 
 logging.basicConfig(level=logging.INFO)
@@ -22,14 +22,16 @@ def landing_trigger(cloud_event: CloudEvent):
 
     entity_name = helper.get_entity_name(file_name)
     
-    if bq_service.is_file_already_processed(file_name):
+    if not firestore_service.claim_file(
+        file_name,
+        cloud_event["id"]
+    ):
 
         logging.info(
             f"Skipping duplicate file: {file_name}"
         )
 
         return
-    # bq_service.mark_file_processing(file_name)
 
     try:
 
@@ -104,7 +106,7 @@ def landing_trigger(cloud_event: CloudEvent):
         status="SUCCESS"
         )
 
-        bq_service.mark_file_success(file_name)
+        firestore_service.mark_success(file_name)
 
         storage_service.move_to_archive(app_config.LANDING_BUCKET,app_config.ARCHIVE_BUCKET,
         file_name
@@ -123,7 +125,7 @@ def landing_trigger(cloud_event: CloudEvent):
             error_message=str(e)
         )
 
-        # bq_service.mark_file_failed(file_name)
+        firestore_service.mark_failed(file_name)
 
         storage_service.move_to_error(app_config.LANDING_BUCKET,app_config.ERROR_BUCKET,
             file_name

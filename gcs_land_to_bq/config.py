@@ -1,6 +1,7 @@
 import os
 from google.cloud import storage
 from google.cloud import bigquery
+from google.cloud import firestore
 
 LANDING_BUCKET = os.environ.get("LANDING_BUCKET")
 ARCHIVE_BUCKET = os.environ.get("ARCHIVE_BUCKET")
@@ -14,3 +15,6 @@ def get_storage_client():
 
 def get_bq_client():
     return bigquery.Client()
+
+def get_firestore_client():
+    return firestore.Client()
