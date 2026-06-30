@@ -53,7 +53,7 @@ def landing_trigger(cloud_event: CloudEvent):
             "File extension validation passed"
         )
 
-        df = storage_service.read_parquet_file(file_name,app_config.LANDING_BUCKET)
+        df = storage_service.read_parquet_file(app_config.LANDING_BUCKET,file_name)
 
         if df is None:
 
