@@ -6,3 +6,4 @@ pandas
 pyarrow
 pyyaml
 pandas-gbq>=0.26.1
+google-cloud-firestore
