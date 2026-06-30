@@ -1,5 +1,6 @@
 from datetime import datetime,timezone
 from decimal import Decimal
+import pandas as pd
 
 def add_audit_columns(df, file_name):
 
@@ -42,3 +43,5 @@ def process_dataframe(df, file_name):
                 df[col] = df[col].apply(
                     lambda x: Decimal(str(x))
                 )
+    
+    return df
