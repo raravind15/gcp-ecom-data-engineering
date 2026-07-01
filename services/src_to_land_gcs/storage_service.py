@@ -1,4 +1,4 @@
-import config   
+import services.src_to_land_gcs.config as config   
 
 def copy_file(file_name):
     storage_client=config.get_storage_client()

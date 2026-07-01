@@ -1,4 +1,4 @@
-from utils import helper
+from services.gcs_land_to_bq.utils import helper
 
 def test_get_entity_customer():
 

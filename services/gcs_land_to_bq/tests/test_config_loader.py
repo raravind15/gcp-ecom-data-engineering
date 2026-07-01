@@ -1,6 +1,6 @@
 from unittest.mock import mock_open
 
-from utils import config_loader
+from services.gcs_land_to_bq.utils import config_loader
 
 
 def test_load_yaml_config(mocker):

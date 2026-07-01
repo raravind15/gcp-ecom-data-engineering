@@ -1,6 +1,6 @@
 import logging
 from google.cloud import bigquery
-import config
+import services.gcs_land_to_bq.config as config
 
 bq_client=config.get_bq_client()
 
