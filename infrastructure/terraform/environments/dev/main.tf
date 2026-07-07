@@ -422,7 +422,7 @@ module "git_src_to_land_trigger" {
 
     _SERVICE_NAME = "src-to-landing-ingestion"
 
-    _SOURCE_DIR = "src_to_land_gcs"
+    _SOURCE_DIR = "services/src_to_land_gcs"
 
   }
 
@@ -460,7 +460,7 @@ module "git_land_to_bq_trigger" {
 
     _SERVICE_NAME = "landing-to-bqraw"
 
-    _SOURCE_DIR = "gcs_land_to_bq"
+    _SOURCE_DIR = "services/gcs_land_to_bq"
 
   }
 
