@@ -1,7 +1,7 @@
 import functions_framework
 from cloudevents.http import CloudEvent
 import logging
-import services.src_to_land_gcs.storage_service as storage_service
+import storage_service as storage_service
 
 import logging
 

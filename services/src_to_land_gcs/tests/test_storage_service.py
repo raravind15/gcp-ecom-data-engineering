@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
-from services.src_to_land_gcs.config import *
-import services.src_to_land_gcs.storage_service as storage_service
+from config import *
+import storage_service as storage_service
 
 def test_copy_file(mocker):
 
