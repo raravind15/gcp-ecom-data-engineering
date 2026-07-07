@@ -465,3 +465,23 @@ module "git_land_to_bq_trigger" {
   }
 
 }
+
+module "src_to_land_invoker" {
+  source = "../../modules/cloud_run_invoker"
+
+  project_id  = var.project_id
+  region       = var.region
+  service_name = "src-to-landing-ingestion"
+
+  member = "serviceAccount:${module.src_to_landing_sa.email}"
+}
+
+module "landing_to_bq_invoker" {
+  source = "../../modules/cloud_run_invoker"
+
+  project_id  = var.project_id
+  region       = var.region
+  service_name = "landing-to-bqraw"
+
+  member = "serviceAccount:${module.landing_to_bqraw_sa.email}"
+}
