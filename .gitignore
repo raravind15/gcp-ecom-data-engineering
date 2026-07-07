@@ -1,0 +1,8 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+# Optional: keep if you don't want to commit it
+# .terraform.lock.hcl

@@ -1,0 +1,11 @@
+functions-framework==3.*
+google-cloud-storage
+google-cloud-bigquery
+cloudevents
+pandas
+pyarrow
+pyyaml
+pandas-gbq>=0.26.1
+pytest==8.2.2
+pytest-mock==3.14.0
+google-cloud-firestore

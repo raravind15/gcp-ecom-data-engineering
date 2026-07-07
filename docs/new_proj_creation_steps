@@ -1,0 +1,35 @@
+step 1 create project in GCP
+       copy all folders inside dev and paste inside prod
+
+step 2
+gcloud config set project di-prod-aravind
+
+step 3 Enable API's
+
+gcloud services enable \
+  run.googleapis.com \
+  cloudbuild.googleapis.com \
+  artifactregistry.googleapis.com \
+  eventarc.googleapis.com \
+  bigquery.googleapis.com \
+  storage.googleapis.com \
+  iam.googleapis.com \
+  pubsub.googleapis.com \
+  secretmanager.googleapis.com
+
+  Step 4 – Create the Terraform State Bucket for PROD
+
+  gcloud storage buckets create gs://di-prod-aravind-tfstate \
+    --location=asia-south1 \
+    --uniform-bucket-level-access
+
+  Step 5 – Update prod/backend.tf
+  terraform {
+  backend "gcs" {
+    bucket = "di-prod-aravind-tfstate"
+    prefix = "terraform/prod"
+  }
+}
+ 
+  Step 6 Initialize inside prod folder
+  terraform init -reconfigure

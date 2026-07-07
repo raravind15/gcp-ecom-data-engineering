@@ -1,0 +1,31 @@
+table_name: customers
+
+target_dataset: ds_raw
+target_table: customers_raw
+
+file_pattern: customers_YYYYMMDD.parquet
+
+file_format: PARQUET
+
+allowed_extensions:
+- .parquet
+
+reject_empty_file: true
+
+multiple_files_allowed: false
+
+load_config:
+
+load_type: WRITE_APPEND
+
+validations:
+
+mandatory_columns:
+- customer_id
+
+mandatory_non_null_columns:
+- customer_id
+
+row_count_validation: true
+
+row_count_threshold: 0
