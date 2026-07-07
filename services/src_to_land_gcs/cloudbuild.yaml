@@ -5,7 +5,7 @@ steps:
 # Unit tests
 - name: 'python:3.12'
   id: 'Run Unit Tests'
-  dir: 'src_to_land_gcs'
+  dir: 'services/src_to_land_gcs'
   entrypoint: 'bash'
   args:
     - '-c'
