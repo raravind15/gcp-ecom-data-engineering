@@ -2,10 +2,16 @@ import functions_framework
 from cloudevents.http import CloudEvent
 import logging
 import yaml
-import services.gcs_land_to_bq.config as app_config
-from services import storage_service,validation_service,bq_service,audit_service,procedure_service,processing_service,firestore_service
-from services.gcs_land_to_bq.utils import helper
-from services.gcs_land_to_bq.utils import config_loader
+import config as app_config
+from services import storage_service
+from services import validation_service
+from services import bq_service
+from services import audit_service
+from services import procedure_service
+from services import processing_service
+from services import firestore_service
+from utils import helper
+from utils import config_loader
 
 logging.basicConfig(level=logging.INFO)
 

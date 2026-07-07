@@ -1,6 +1,6 @@
 import logging
 
-import services.gcs_land_to_bq.config as config
+import config as config
 from google.cloud import firestore
 from google.api_core.exceptions import AlreadyExists
 

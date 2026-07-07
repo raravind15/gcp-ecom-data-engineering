@@ -1,5 +1,5 @@
 import logging
-import services.gcs_land_to_bq.config as config
+import config as config
 import pandas as pd
 from io import BytesIO
 
