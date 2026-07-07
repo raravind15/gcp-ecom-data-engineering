@@ -52,4 +52,4 @@ steps:
     - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
     - '--region=${_REGION}'
     - '--service-account=${_SERVICE_ACCOUNT}'
-    - '--env-vars-file=/configs/${_ENV}/src_to_land_gcs.env'
+    - '--env-vars-file=/configs/${_ENV}/deploy.env'
