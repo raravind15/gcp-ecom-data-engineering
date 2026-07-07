@@ -402,7 +402,7 @@ module "git_src_to_land_trigger" {
 
   github_repo = "gcp-ecom-data-engineering"
 
-  branch = "^main$"
+  branch = "^prod$"
 
   service_account = module.git_trigger_sa.name
 
@@ -440,7 +440,7 @@ module "git_land_to_bq_trigger" {
 
   github_repo = "gcp-ecom-data-engineering"
 
-  branch = "^main$"
+  branch = "^prod$"
 
   service_account = module.git_trigger_sa.name
 
@@ -463,5 +463,4 @@ module "git_land_to_bq_trigger" {
     _SOURCE_DIR = "services/gcs_land_to_bq"
 
   }
-
 }
