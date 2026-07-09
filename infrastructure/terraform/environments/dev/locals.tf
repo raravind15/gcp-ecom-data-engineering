@@ -14,6 +14,8 @@ locals {
 
   landing_to_bq_image = "${var.region}-docker.pkg.dev/${var.project_id}/${local.artifact_repository}/gcs_land_to_bq:${var.image_tag}"
 
+  platform_jobs_image = "${var.region}-docker.pkg.dev/${var.project_id}/${local.artifact_repository}/platform_jobs:${var.image_tag}"
+
 }
 
 locals {

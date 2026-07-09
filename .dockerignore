@@ -1,4 +1,12 @@
-.venv
-.vscode
 .git
-__pycache__
+.github
+.gitignore
+
+.vscode
+.idea
+
+__pycache__/
+*.pyc
+*.pytest_cache/
+
+docs/

@@ -71,6 +71,16 @@ module "git_trigger_sa" {
 
 }
 
+module "platform_jobs_sa" {
+
+  source = "../../modules/service_account"
+
+  account_id   = "sa-platform-jobs"
+
+  display_name = "sa-platform-jobs"
+
+}
+
 ##########################################
 # IAM - Source to Landing
 ##########################################
@@ -243,6 +253,22 @@ module "git_trigger_storage_object_viewer" {
 
 }
 
+##################################################
+# IAM - Cloud run platform jobs
+##################################################
+
+module "platform_jobs_logs_writer" {
+
+  source = "../../modules/iam"
+
+  project_id = var.project_id
+
+  role = "roles/logging.logWriter"
+
+  member = module.platform_jobs_sa.member
+
+}
+
 #Cloud run service
 
 module "src_to_landing_cloud_run" {
@@ -280,6 +306,28 @@ module "landing_to_bqraw_cloud_run" {
     ERROR_BUCKET   = local.error_bucket_name
     RAW_DATASET    = "ds_raw"
     AUDIT_DATASET  = "ds_audit"
+  }
+
+}
+
+module "platform_jobs_cloud_run" {
+
+  source = "../../modules/cloud_run"
+
+  service_name = "platform-jobs"
+
+  location = var.region
+
+  image = local.platform_jobs_image
+
+  service_account = module.platform_jobs_sa.email
+
+  environment_variables = {
+    PROJECT_ID      = var.project_id
+    ENVIRONMENT     = var.environment
+    SERVICE_NAME    = "platform_jobs"
+    SERVICE_VERSION = "1.0.0"
+    LOG_LEVEL       = "INFO"
   }
 
 }
@@ -461,6 +509,44 @@ module "git_land_to_bq_trigger" {
     _SERVICE_NAME = "landing-to-bqraw"
 
     _SOURCE_DIR = "services/gcs_land_to_bq"
+
+  }
+
+}
+
+module "git_platform_jobs_trigger" {
+
+  source = "../../modules/cloud_build_trigger"
+
+  name = "trg-git-platform-jobs"
+
+  filename = "services/platform_jobs/cloudbuild.yaml"
+
+  github_owner = "raravind15"
+
+  github_repo = "gcp-ecom-data-engineering"
+
+  branch = "^main$"
+
+  service_account = module.git_trigger_sa.name
+
+  substitutions = {
+
+    _AR_REPOSITORY = "dataeng-images"
+
+    _ENV = var.environment
+
+    _ENV_FILE = "deploy.env"
+
+    _IMAGE_NAME = "platform_jobs"
+
+    _REGION = var.region
+
+    _SERVICE_ACCOUNT = "sa-platform-jobs"
+
+    _SERVICE_NAME = "platform-jobs"
+
+    _SOURCE_DIR = "."
 
   }
 
