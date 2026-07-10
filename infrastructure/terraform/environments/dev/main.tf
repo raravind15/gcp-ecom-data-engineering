@@ -598,24 +598,25 @@ module "scheduler_platform_jobs_invoker" {
 
 }
 
-module "platform_jobs_scheduler" {
+module "customers_transformation_scheduler" {
 
   source = "../../modules/cloud_scheduler"
 
-  job_name = "platform-jobs-health"
+  job_name = "customers-transformation"
 
-  description = "Invoke Platform Jobs"
+  description = "Execute Customers Transformation Stored Procedure"
 
   region = var.region
 
   schedule = "*/5 * * * *"
 
-  uri = "${module.platform_jobs_cloud_run.uri}/jobs"
+  uri = "${module.platform_jobs_cloud_run.uri}/run-procedure"
 
   service_account_email = module.cloud_scheduler_sa.email
 
   request_body = jsonencode({
-    job_name = "health_check"
+    dataset        = "ds_trans"
+    procedure_name = "sp_transform_customers"
   })
 
   depends_on = [

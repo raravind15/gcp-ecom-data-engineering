@@ -6,15 +6,13 @@ from flask import Flask
 
 from shared.core.config import AppInfo
 from shared.core.logger import get_logger
-from services.platform_jobs.handlers.jobs.health import health_check
+from services.platform_jobs.routes.run_procedure import run_procedure_bp
 
 logger = get_logger(__name__)
 
 app = Flask(__name__)
 
-# Register endpoints
-app.add_url_rule("/health", view_func=health_check, methods=["GET"])
-
+app.register_blueprint(run_procedure_bp)
 
 @app.route("/")
 def home():
