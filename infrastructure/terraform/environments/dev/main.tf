@@ -279,6 +279,18 @@ module "platform_jobs_logs_writer" {
 
 }
 
+module "platform_jobs_job_user" {
+
+  source = "../../modules/iam"
+
+  project_id = var.project_id
+
+  role = "roles/bigquery.jobUser"
+
+  member = module.platform_jobs_sa.member
+
+}
+
 #Cloud run service
 
 module "src_to_landing_cloud_run" {
