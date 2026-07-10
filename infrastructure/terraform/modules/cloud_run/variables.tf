@@ -37,3 +37,8 @@ variable "max_scale" {
   type = number
   default = 3
 }
+
+variable "allow_unauthenticated" {
+  type    = bool
+  default = false
+}

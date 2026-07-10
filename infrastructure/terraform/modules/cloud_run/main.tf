@@ -42,3 +42,14 @@ resource "google_cloud_run_v2_service" "service" {
     ]
   }
 }
+
+resource "google_cloud_run_service_iam_member" "public_invoker" {
+
+  count = var.allow_unauthenticated ? 1 : 0
+
+  location = google_cloud_run_v2_service.service.location
+  service  = google_cloud_run_v2_service.service.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+
+}

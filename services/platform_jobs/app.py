@@ -6,7 +6,7 @@ from flask import Flask
 
 from shared.core.config import AppInfo
 from shared.core.logger import get_logger
-from services.platform_jobs.handlers.health import health_check
+from services.platform_jobs.handlers.jobs.health import health_check
 
 logger = get_logger(__name__)
 

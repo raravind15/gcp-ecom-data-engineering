@@ -81,6 +81,16 @@ module "platform_jobs_sa" {
 
 }
 
+module "cloud_scheduler_sa" {
+
+  source = "../../modules/service_account"
+
+  account_id   = "sa-cloud-scheduler"
+
+  display_name = "sa-cloud-scheduler"
+
+}
+
 ##########################################
 # IAM - Source to Landing
 ##########################################
@@ -321,6 +331,8 @@ module "platform_jobs_cloud_run" {
   image = local.platform_jobs_image
 
   service_account = module.platform_jobs_sa.email
+
+  allow_unauthenticated = true
 
   environment_variables = {
     PROJECT_ID      = var.project_id
@@ -570,4 +582,72 @@ module "landing_to_bq_invoker" {
   service_name = "landing-to-bqraw"
 
   member = "serviceAccount:${module.landing_to_bqraw_sa.email}"
+}
+
+module "scheduler_platform_jobs_invoker" {
+
+  source = "../../modules/cloud_run_invoker"
+
+  project_id = var.project_id
+
+  region = var.region
+
+  service_name = "platform-jobs"
+
+  member = module.cloud_scheduler_sa.member
+
+}
+
+module "platform_jobs_scheduler" {
+
+  source = "../../modules/cloud_scheduler"
+
+  job_name = "platform-jobs-health"
+
+  description = "Invoke Platform Jobs"
+
+  region = var.region
+
+  schedule = "*/5 * * * *"
+
+  uri = "${module.platform_jobs_cloud_run.uri}/jobs"
+
+  service_account_email = module.cloud_scheduler_sa.email
+
+  request_body = jsonencode({
+    job_name = "health_check"
+  })
+
+  depends_on = [
+    module.project_services
+  ]
+
+}
+
+module "project_services" {
+
+  source = "../../modules/project_services"
+
+  project_id = var.project_id
+
+  services = [
+
+    "artifactregistry.googleapis.com",
+
+    "cloudbuild.googleapis.com",
+
+    "cloudfunctions.googleapis.com",
+
+    "cloudscheduler.googleapis.com",
+
+    "eventarc.googleapis.com",
+
+    "firestore.googleapis.com",
+
+    "run.googleapis.com",
+
+    "storage.googleapis.com"
+
+  ]
+
 }
