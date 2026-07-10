@@ -279,13 +279,25 @@ module "platform_jobs_logs_writer" {
 
 }
 
-module "platform_jobs_job_user" {
+module "platform_jobs_bq_job_user" {
 
   source = "../../modules/iam"
 
   project_id = var.project_id
 
   role = "roles/bigquery.jobUser"
+
+  member = module.platform_jobs_sa.member
+
+}
+
+module "platform_jobs_bq_data_editor" {
+
+  source = "../../modules/iam"
+
+  project_id = var.project_id
+
+  role = "roles/bigquery.dataEditor"
 
   member = module.platform_jobs_sa.member
 
