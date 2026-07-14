@@ -3,6 +3,7 @@ import logging
 import os
 
 from google.cloud import pubsub_v1
+import config as config
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +13,7 @@ publisher = pubsub_v1.PublisherClient()
 def publish_event(table_name, status, rows_loaded):
 
     topic_path = publisher.topic_path(
-        os.environ["PROJECT_ID"],
+        config["PROJECT_ID"],
         "event-notifications"
     )
 
