@@ -17,11 +17,22 @@ def process_event(message):
     try:
         event = json.loads(decoded_message)
 
-        logger.info("Received Event: %s", event)
+        logger.info(
+            "Received Event: %s",
+            event
+        )
 
-    except Exception as ex:
-        logger.exception("Invalid JSON received")
-        raise
+    except json.JSONDecodeError:
+
+        logger.warning(
+            "Ignoring invalid message: %s",
+            decoded_message
+        )
+
+        return {
+            "status": "IGNORED",
+            "message": "Message is not valid JSON."
+        }
 
     return {
         "status": "SUCCESS",
