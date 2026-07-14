@@ -101,7 +101,7 @@ def landing_trigger(cloud_event: CloudEvent):
         table_name=config['target_table'],
         status="SUCCESS",
         rows_loaded=len(df)
-)
+        )
 
         validation_service.validate_row_count_reconciliation(
             file_name=file_name,
