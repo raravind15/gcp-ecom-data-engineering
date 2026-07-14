@@ -734,6 +734,34 @@ module "scheduler_workflow_invoker" {
   member = module.cloud_scheduler_sa.member
 }
 
+module "event_consumer_invoker" {
+
+  source = "../../modules/cloud_run_invoker"
+
+  project_id = var.project_id
+
+  region = var.region
+
+  service_name = "event-consumer"
+
+  member = module.event_consumer_sa.member
+
+}
+
+module "event_consumer_pubsub_invoker" {
+
+  source = "../../modules/cloud_run_invoker"
+
+  project_id = var.project_id
+
+  region = var.region
+
+  service_name = "event-consumer"
+
+  member = "serviceAccount:${module.event_consumer_sa.email}"
+}
+
+
 module "customers_transformation_scheduler" {
 
   source = "../../modules/cloud_scheduler"
@@ -788,4 +816,21 @@ module "project_services" {
 
   ]
 
+}
+
+module "event_notifications" {
+
+  source = "../../modules/pubsub"
+
+  topic_name = "event-notifications"
+
+  subscription_name = "event-consumer-sub"
+
+  push_endpoint = "${module.event_consumer_cloud_run.uri}/events"
+
+  service_account_email = module.event_consumer_sa.email
+
+  depends_on = [
+    module.event_consumer_cloud_run
+  ]
 }

@@ -12,12 +12,16 @@ def process_event(message):
         message["data"]
     ).decode("utf-8")
 
-    event = json.loads(decoded_message)
+    logger.info("Decoded Message = [%s]", decoded_message)
 
-    logger.info(
-        "Received Event: %s",
-        event
-    )
+    try:
+        event = json.loads(decoded_message)
+
+        logger.info("Received Event: %s", event)
+
+    except Exception as ex:
+        logger.exception("Invalid JSON received")
+        raise
 
     return {
         "status": "SUCCESS",

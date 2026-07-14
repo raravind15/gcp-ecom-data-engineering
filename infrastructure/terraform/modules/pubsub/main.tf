@@ -10,6 +10,8 @@ resource "google_pubsub_subscription" "subscription" {
 
   topic = google_pubsub_topic.topic.id
 
+  ack_deadline_seconds = 30
+
   push_config {
 
     push_endpoint = var.push_endpoint
