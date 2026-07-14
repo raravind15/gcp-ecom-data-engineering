@@ -13,7 +13,7 @@ publisher = pubsub_v1.PublisherClient()
 def publish_event(table_name, status, rows_loaded):
 
     topic_path = publisher.topic_path(
-        config["PROJECT_ID"],
+        config.PROJECT_ID,
         "event-notifications"
     )
 

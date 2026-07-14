@@ -9,6 +9,7 @@ ERROR_BUCKET = os.environ.get("ERROR_BUCKET")
 
 RAW_DATASET = os.environ.get("RAW_DATASET")
 AUDIT_DATASET = os.environ.get("AUDIT_DATASET")
+PROJECT_ID = os.environ.get("PROJECT_ID")
 
 def get_storage_client():
     return storage.Client()
