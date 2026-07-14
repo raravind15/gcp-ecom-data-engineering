@@ -3,7 +3,6 @@ Main application entry point.
 """
 import os
 from flask import Flask
-
 from shared.core.config import AppInfo
 from shared.core.logger import get_logger
 from services.platform_jobs.routes.run_procedure import run_procedure_bp

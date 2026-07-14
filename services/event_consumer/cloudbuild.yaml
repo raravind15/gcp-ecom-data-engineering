@@ -1,0 +1,46 @@
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+
+# Build Docker Image
+- name: 'gcr.io/cloud-builders/docker'
+  dir: '${_SOURCE_DIR}'
+  args:
+    - build
+    - -t
+    - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
+    - -f
+    - services/event_consumer/Dockerfile
+    - .
+
+# Tag latest
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - tag
+    - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
+    - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE_NAME}:latest'
+
+# Push SHA Image
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - push
+    - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
+
+# Push Latest Image
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - push
+    - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE_NAME}:latest'
+
+# Deploy Cloud Run
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+    - run
+    - deploy
+    - '${_SERVICE_NAME}'
+    - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
+    - '--region=${_REGION}'
+    - '--service-account=${_SERVICE_ACCOUNT}'
+    - '--set-env-vars=PROJECT_ID=$PROJECT_ID,ENVIRONMENT=${_ENV},SERVICE_NAME=${_SERVICE_NAME},SERVICE_VERSION=1.0.0,LOG_LEVEL=INFO'

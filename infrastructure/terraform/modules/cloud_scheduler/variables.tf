@@ -37,3 +37,8 @@ variable "request_body" {
   type    = string
   default = ""
 }
+
+variable "auth_type" {
+  type    = string
+  default = "OIDC"
+}

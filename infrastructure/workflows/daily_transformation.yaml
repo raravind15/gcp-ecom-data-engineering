@@ -1,0 +1,58 @@
+main:
+
+  steps:
+
+    - transform_customers:
+
+        call: http.post
+
+        args:
+
+          url: ${sys.get_env("PLATFORM_JOBS_URL") + "/run-procedure"}
+
+          auth:
+            type: OIDC
+
+          body:
+
+            dataset: ds_trans
+
+            procedure_name: sp_transform_customers
+
+    - transform_orders:
+
+        call: http.post
+
+        args:
+
+          url: ${sys.get_env("PLATFORM_JOBS_URL") + "/run-procedure"}
+
+          auth:
+            type: OIDC
+
+          body:
+
+            dataset: ds_trans
+
+            procedure_name: sp_transform_orders
+
+    - transform_products:
+
+        call: http.post
+
+        args:
+
+          url: ${sys.get_env("PLATFORM_JOBS_URL") + "/run-procedure"}
+
+          auth:
+            type: OIDC
+
+          body:
+
+            dataset: ds_trans
+
+            procedure_name: sp_transform_products
+
+    - done:
+
+        return: "Workflow Completed Successfully"

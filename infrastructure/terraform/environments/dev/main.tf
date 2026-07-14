@@ -91,6 +91,26 @@ module "cloud_scheduler_sa" {
 
 }
 
+module "workflow_sa" {
+
+  source = "../../modules/service_account"
+
+  account_id   = "sa-workflow"
+
+  display_name = "Workflow Service Account"
+
+}
+
+module "event_consumer_sa" {
+
+  source = "../../modules/service_account"
+
+  account_id   = "sa-event-consumer"
+
+  display_name = "Event Consumer Service Account"
+
+}
+
 ##########################################
 # IAM - Source to Landing
 ##########################################
@@ -303,6 +323,22 @@ module "platform_jobs_bq_data_editor" {
 
 }
 
+##################################################
+# IAM - Cloud run event consumer
+##################################################
+
+module "event_consumer_logs_writer" {
+
+  source = "../../modules/iam"
+
+  project_id = var.project_id
+
+  role = "roles/logging.logWriter"
+
+  member = module.event_consumer_sa.member
+
+}
+
 #Cloud run service
 
 module "src_to_landing_cloud_run" {
@@ -366,6 +402,21 @@ module "platform_jobs_cloud_run" {
     LOG_LEVEL       = "INFO"
   }
 
+}
+
+module "event_consumer_cloud_run" {
+
+  source = "../../modules/cloud_run"
+
+  service_name = "event-consumer"
+
+  location = var.region
+
+  image = local.event_consumer_image
+
+  service_account = module.event_consumer_sa.email
+
+  environment_variables = {}
 }
 
 #Eventarc triggers
@@ -588,6 +639,42 @@ module "git_platform_jobs_trigger" {
 
 }
 
+module "git_event_consumer_trigger" {
+
+  source = "../../modules/cloud_build_trigger"
+
+  name = "trg-git-event-consumer"
+
+  filename = "services/event_consumer/cloudbuild.yaml"
+
+  github_owner = "raravind15"
+
+  github_repo = "gcp-ecom-data-engineering"
+
+  branch = "^main$"
+
+  service_account = module.git_trigger_sa.name
+
+  substitutions = {
+
+    _AR_REPOSITORY = "dataeng-images"
+
+    _ENV = var.environment
+
+    _IMAGE_NAME = "event_consumer"
+
+    _REGION = var.region
+
+    _SERVICE_ACCOUNT = "sa-event-consumer"
+
+    _SERVICE_NAME = "event-consumer"
+
+    _SOURCE_DIR = "."
+
+  }
+
+}
+
 module "src_to_land_invoker" {
   source = "../../modules/cloud_run_invoker"
 
@@ -622,6 +709,31 @@ module "scheduler_platform_jobs_invoker" {
 
 }
 
+module "workflow_platform_jobs_invoker" {
+
+  source = "../../modules/cloud_run_invoker"
+
+  project_id = var.project_id
+
+  region = var.region
+
+  service_name = "platform-jobs"
+
+  member = module.workflow_sa.member
+
+}
+
+module "scheduler_workflow_invoker" {
+
+  source = "../../modules/iam"
+
+  project_id = var.project_id
+
+  role = "roles/workflows.invoker"
+
+  member = module.cloud_scheduler_sa.member
+}
+
 module "customers_transformation_scheduler" {
 
   source = "../../modules/cloud_scheduler"
@@ -634,14 +746,13 @@ module "customers_transformation_scheduler" {
 
   schedule = "*/5 * * * *"
 
-  uri = "${module.platform_jobs_cloud_run.uri}/run-procedure"
+  uri = "https://workflowexecutions.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/workflows/daily-transformation/executions"
+
+  auth_type = "OAUTH"
 
   service_account_email = module.cloud_scheduler_sa.email
 
-  request_body = jsonencode({
-    dataset        = "ds_trans"
-    procedure_name = "sp_transform_customers"
-  })
+  request_body = jsonencode({})
 
   depends_on = [
     module.project_services
@@ -671,7 +782,9 @@ module "project_services" {
 
     "run.googleapis.com",
 
-    "storage.googleapis.com"
+    "storage.googleapis.com",
+
+    "workflows.googleapis.com"
 
   ]
 

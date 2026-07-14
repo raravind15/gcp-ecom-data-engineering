@@ -16,6 +16,8 @@ locals {
 
   platform_jobs_image = "${var.region}-docker.pkg.dev/${var.project_id}/${local.artifact_repository}/platform_jobs:${var.image_tag}"
 
+  event_consumer_image = "${var.region}-docker.pkg.dev/${var.project_id}/${local.artifact_repository}/event_consumer:${var.image_tag}"
+
 }
 
 locals {

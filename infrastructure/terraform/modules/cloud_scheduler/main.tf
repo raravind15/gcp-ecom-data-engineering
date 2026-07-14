@@ -14,8 +14,22 @@ resource "google_cloud_scheduler_job" "job" {
 
     uri = var.uri
 
-    oidc_token {
-      service_account_email = var.service_account_email
+    dynamic "oidc_token" {
+
+        for_each = var.auth_type == "OIDC" ? [1] : []
+
+        content {
+          service_account_email = var.service_account_email
+        }
+    }
+
+    dynamic "oauth_token" {
+
+        for_each = var.auth_type == "OAUTH" ? [1] : []
+
+        content {
+          service_account_email = var.service_account_email
+        }
     }
 
     body = base64encode(var.request_body)
