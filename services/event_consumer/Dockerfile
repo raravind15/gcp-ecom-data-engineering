@@ -3,7 +3,7 @@ FROM python:3.12-slim
 WORKDIR /app
 
 COPY shared ./shared
-COPY services/platform_jobs ./services/platform_jobs
+COPY services/event_consumer ./services/event_consumer
 
 ENV PYTHONPATH=/app
 
