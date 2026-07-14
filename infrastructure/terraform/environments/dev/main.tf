@@ -376,7 +376,7 @@ module "landing_to_bqraw_cloud_run" {
     ERROR_BUCKET   = local.error_bucket_name
     RAW_DATASET    = "ds_raw"
     AUDIT_DATASET  = "ds_audit"
-    PROJECT_ID     = "var.project_id"
+    PROJECT_ID     = var.project_id
   }
 
 }
